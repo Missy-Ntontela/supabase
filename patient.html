@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Patient Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+
+<body>
+  <h1>Patient Dashboard</h1>
+
+  <div>
+    <p>My Profile</p>
+    <p>Book Appointment</p>
+  </div>
+
+  <button onclick="logout()">Logout</button>
+
+  <script src="app.js"></script>
+  <script>
+    protectPage("patient");
+  </script>
+</body>
+</html>
