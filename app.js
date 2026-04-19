@@ -1,21 +1,16 @@
-// ================= SUPABASE =================
 const SUPABASE_URL = "https://ixikhufrylaugpdxokwu.supabase.co";
 const SUPABASE_KEY = "sb_publishable_7T38wLjTEs7UJKMMTxl9tQ_OLM6Wsf3";
 
-// IMPORTANT: avoid naming conflict
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ================= STATE =================
 let isLogin = true;
 
-// ================= TOGGLE =================
 function toggleMode() {
   isLogin = !isLogin;
   document.getElementById("title").innerText = isLogin ? "Login" : "Sign Up";
   document.getElementById("btn").innerText = isLogin ? "Login" : "Sign Up";
 }
 
-// ================= AUTH =================
 async function handleAuth() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -43,7 +38,6 @@ async function handleAuth() {
 
     if (error) return msg.innerText = error.message;
 
-    // DEFAULT ROLE = patient (SECURE)
     await supabaseClient.from("profiles").insert([
       {
         id: data.user.id,
@@ -56,19 +50,23 @@ async function handleAuth() {
   }
 }
 
-// ================= GOOGLE LOGIN =================
 async function googleLogin() {
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: "https://missy-ntontela.github.io/supabase/auth/callback.html"
+      redirectTo: new URL("auth/callback.html", window.location.href).href
     }
   });
 
   if (error) console.log(error.message);
 }
 
-// ================= ROUTING =================
+function pageForRole(role) {
+  if (role === "admin") return "admin.html";
+  if (role === "staff") return "staff.html";
+  return "patient.html";
+}
+
 async function routeUser() {
   const { data: { user } } = await supabaseClient.auth.getUser();
 
@@ -85,39 +83,33 @@ async function routeUser() {
 
   if (!profile) {
     await supabaseClient.from("profiles").insert([
-      { id: user.id, role: "patient" }
+      { id: user.id, email: user.email, role: "patient" }
     ]);
     window.location.href = "patient.html";
     return;
   }
 
-  if (profile.role === "admin") {
-    window.location.href = "admin.html";
-  } else if (profile.role === "staff") {
-    window.location.href = "staff.html";
-  } else {
-    window.location.href = "patient.html";
-  }
+  window.location.href = pageForRole(profile.role);
 }
 
-// ================= SESSION HANDLING =================
-supabaseClient.auth.onAuthStateChange((event) => {
-  if (event === "SIGNED_IN") {
-    routeUser();
-  }
+async function routeIfAuthenticated() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) return false;
+  await routeUser();
+  return true;
+}
 
+supabaseClient.auth.onAuthStateChange((event) => {
   if (event === "SIGNED_OUT") {
-    window.location.href = "index.html";
+    window.location.href = new URL("index.html", window.location.href).href;
   }
 });
 
-// ================= LOGOUT =================
 async function logout() {
   await supabaseClient.auth.signOut();
   window.location.href = "index.html";
 }
 
-// ================= PROTECT PAGES =================
 async function protectPage(requiredRole) {
   const { data: { user } } = await supabaseClient.auth.getUser();
 

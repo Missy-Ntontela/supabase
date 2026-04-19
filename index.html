@@ -69,11 +69,10 @@
 
 <body>
 
-<div class="box">
+<div class="box" id="authBox" style="display:none;">
 
   <h2 id="title">Login</h2>
 
-  <!-- 🔐 AUTOFILL CONTROLLED INPUTS -->
   <form autocomplete="off">
 
     <input 
@@ -108,6 +107,11 @@
 </div>
 
 <script src="app.js"></script>
+<script>
+  routeIfAuthenticated().then((authed) => {
+    if (!authed) document.getElementById("authBox").style.display = "block";
+  });
+</script>
 
 </body>
 </html>
