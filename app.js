@@ -58,9 +58,14 @@ async function handleAuth() {
 
 // ================= GOOGLE LOGIN =================
 async function googleLogin() {
-  await supabaseClient.auth.signInWithOAuth({
-    provider: "google"
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin
+    }
   });
+
+  if (error) console.log(error.message);
 }
 
 // ================= ROUTING =================
