@@ -34,6 +34,7 @@
       margin: 8px 0;
       border-radius: 8px;
       border: 1px solid #ccc;
+      outline: none;
     }
 
     button {
@@ -45,6 +46,10 @@
       background: #667eea;
       color: white;
       cursor: pointer;
+    }
+
+    .google-btn {
+      background: #db4437;
     }
 
     .toggle {
@@ -65,14 +70,33 @@
 <body>
 
 <div class="box">
+
   <h2 id="title">Login</h2>
 
-  <input id="email" type="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
+  <!-- 🔐 AUTOFILL CONTROLLED INPUTS -->
+  <form autocomplete="off">
+
+    <input 
+      id="email"
+      type="email"
+      name="username"
+      placeholder="Email"
+      autocomplete="username"
+    >
+
+    <input 
+      id="password"
+      type="password"
+      name="password"
+      placeholder="Password"
+      autocomplete="current-password"
+    >
+
+  </form>
 
   <button onclick="handleAuth()" id="btn">Login</button>
 
-  <button onclick="googleLogin()" style="background:#db4437;">
+  <button onclick="googleLogin()" class="google-btn">
     Google Login
   </button>
 
