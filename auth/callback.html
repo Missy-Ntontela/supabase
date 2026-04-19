@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Signing you in...</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f4f6f9;
+    }
+
+    .box {
+      text-align: center;
+      padding: 30px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .loader {
+      border: 4px solid #eee;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <div class="loader"></div>
+  <p>Signing you in...</p>
+</div>
+
+<script>
+const supabaseClient = supabase.createClient(
+  "https://ixikhufrylaugpdxokwu.supabase.co",
+  "sb_publishable_7T38wLjTEs7UJKMMTxl9tQ_OLM6Wsf3"
+);
+
+// 🔐 MAIN AUTH HANDLER
+async function handleAuthCallback() {
+
+  // 1. Get logged-in user from Supabase session
+  const { data: { user }, error } = await supabaseClient.auth.getUser();
+
+  if (error || !user) {
+    window.location.href = "/index.html";
+    return;
+  }
+
+  // 2. Get role from database
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  // 3. If profile doesn't exist → create default patient
+  if (!profile) {
+    await supabaseClient.from("profiles").insert([
+      {
+        id: user.id,
+        email: user.email,
+        role: "patient"
+      }
+    ]);
+
+    window.location.href = "/patient.html";
+    return;
+  }
+
+  // 4. Route based on role
+  if (profile.role === "admin") {
+    window.location.href = "/admin.html";
+  } 
+  else if (profile.role === "staff") {
+    window.location.href = "/staff.html";
+  } 
+  else {
+    window.location.href = "/patient.html";
+  }
+}
+
+// Run immediately
+handleAuthCallback();
+</script>
+
+</body>
+</html>
