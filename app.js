@@ -60,9 +60,9 @@ async function handleAuth() {
 async function googleLogin() {
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: "google",
-    // options: {
-    //   redirectTo: window.location.origin
-    // }
+    options: {
+      redirectTo: "https://missy-ntontela.github.io/supabase/auth/callback.html"
+    }
   });
 
   if (error) console.log(error.message);

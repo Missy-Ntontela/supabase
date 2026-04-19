@@ -60,7 +60,7 @@ async function handleAuthCallback() {
   const { data: { user }, error } = await supabaseClient.auth.getUser();
 
   if (error || !user) {
-    window.location.href = "/index.html";
+    window.location.href = "../index.html";
     return;
   }
 
@@ -81,19 +81,19 @@ async function handleAuthCallback() {
       }
     ]);
 
-    window.location.href = "/patient.html";
+    window.location.href = "../patient.html";
     return;
   }
 
   // 4. Route based on role
   if (profile.role === "admin") {
-    window.location.href = "/admin.html";
-  } 
+    window.location.href = "../admin.html";
+  }
   else if (profile.role === "staff") {
-    window.location.href = "/staff.html";
-  } 
+    window.location.href = "../staff.html";
+  }
   else {
-    window.location.href = "/patient.html";
+    window.location.href = "../patient.html";
   }
 }
 
