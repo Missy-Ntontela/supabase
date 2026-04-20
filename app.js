@@ -24,20 +24,21 @@ async function getCurrentUserRow() {
     .from("users")
     .select("id, email, full_name, phone, role")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   return data;
 }
 
 async function routeUser() {
-  const row = await getCurrentUserRow();
-
-  if (!row) {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
     window.location.href = "index.html";
     return;
   }
 
-  if (needsOnboarding(row)) {
+  const row = await getCurrentUserRow();
+
+  if (!row || needsOnboarding(row)) {
     window.location.href = "onboarding.html";
     return;
   }
@@ -64,20 +65,20 @@ async function logout() {
 }
 
 async function protectPage(requiredRole) {
-  const row = await getCurrentUserRow();
-
-  if (!row) {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
     window.location.href = "index.html";
     return;
   }
 
-  if (needsOnboarding(row)) {
+  const row = await getCurrentUserRow();
+
+  if (!row || needsOnboarding(row)) {
     window.location.href = "onboarding.html";
     return;
   }
 
   if (row.role !== requiredRole) {
-    alert("Access denied");
     window.location.href = pageForRole(row.role);
   }
 }

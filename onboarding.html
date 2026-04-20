@@ -135,8 +135,7 @@
         const { data: { user } } = await supabaseClient.auth.getUser();
         const { error } = await supabaseClient
             .from('users')
-            .update({ full_name, phone })
-            .eq('id', user.id);
+            .upsert({ id: user.id, email: user.email, full_name, phone }, { onConflict: 'id' });
 
         if (error) {
             showError(error.message);
