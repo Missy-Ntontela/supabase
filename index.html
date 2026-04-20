@@ -295,14 +295,8 @@
                 showMessage('Login successful! Redirecting...', 'success');
                 await routeUser();
             } else {
-                const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                const { error } = await supabaseClient.auth.signUp({ email, password });
                 if (error) { showMessage(error.message, 'error'); setLoading(false); return; }
-
-                if (data.user) {
-                    await supabaseClient.from('profiles').insert([
-                        { id: data.user.id, email, role: 'patient' }
-                    ]);
-                }
 
                 showMessage('Account created! Please login.', 'success');
                 setTimeout(() => { toggleMode(); setLoading(false); }, 1500);

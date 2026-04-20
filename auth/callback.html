@@ -50,28 +50,19 @@
 <script src="../app.js"></script>
 <script>
 async function handleAuthCallback() {
-  const { data: { user }, error } = await supabaseClient.auth.getUser();
+  const row = await getCurrentUserRow();
 
-  if (error || !user) {
+  if (!row) {
     window.location.href = "../index.html";
     return;
   }
 
-  const { data: profile } = await supabaseClient
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) {
-    await supabaseClient.from("profiles").insert([
-      { id: user.id, email: user.email, role: "patient" }
-    ]);
-    window.location.href = "../patient.html";
+  if (needsOnboarding(row)) {
+    window.location.href = "../onboarding.html";
     return;
   }
 
-  window.location.href = "../" + pageForRole(profile.role);
+  window.location.href = "../" + pageForRole(row.role);
 }
 
 handleAuthCallback();
