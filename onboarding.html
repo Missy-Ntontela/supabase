@@ -21,23 +21,28 @@
             border-radius: 24px;
             padding: 40px;
             width: 100%;
-            max-width: 440px;
+            max-width: 520px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             display: none;
         }
         h1 { font-size: 24px; color: #1e3c72; margin-bottom: 8px; text-align: center; }
         .subtitle { color: #666; font-size: 14px; text-align: center; margin-bottom: 28px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
-        input {
+        .form-group { margin-bottom: 18px; }
+        .row { display: flex; gap: 12px; }
+        .row .form-group { flex: 1; }
+        label { display: block; margin-bottom: 6px; color: #333; font-weight: 500; font-size: 14px; }
+        input, select, textarea {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid #e0e0e0;
             border-radius: 12px;
-            font-size: 16px;
+            font-size: 15px;
+            font-family: inherit;
             transition: border-color 0.2s;
+            background: white;
         }
-        input:focus { outline: none; border-color: #667eea; }
+        textarea { resize: vertical; min-height: 72px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
         button {
             width: 100%;
             padding: 14px;
@@ -49,6 +54,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             transition: all 0.2s;
+            margin-top: 8px;
         }
         button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102,126,234,0.4); }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -70,24 +76,71 @@
             text-decoration: none;
             cursor: pointer;
         }
+        .hint { color: #888; font-size: 12px; margin-top: 4px; }
     </style>
 </head>
 <body>
     <div class="container" id="appRoot">
         <h1>Complete your profile</h1>
-        <p class="subtitle">We need a couple more details before you continue.</p>
+        <p class="subtitle">We need a few details before you continue.</p>
 
-        <div class="form-group">
-            <label>Full name</label>
-            <input type="text" id="fullName" placeholder="Jane Doe">
-        </div>
+        <form id="onboardingForm" novalidate>
+            <div class="form-group">
+                <label for="fullName">Full name</label>
+                <input type="text" id="fullName" placeholder="Jane Doe" required>
+            </div>
 
-        <div class="form-group">
-            <label>Phone</label>
-            <input type="tel" id="phone" placeholder="+27 ...">
-        </div>
+            <div class="row">
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        placeholder="+27..."
+                        pattern="^\+?[0-9]{10,15}$"
+                        title="10–15 digits, optional +"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label for="alternateContact">Alternate contact</label>
+                    <input
+                        type="tel"
+                        id="alternateContact"
+                        placeholder="+27..."
+                        pattern="^\+?[0-9]{10,15}$"
+                        title="10–15 digits, optional +">
+                </div>
+            </div>
 
-        <button id="saveBtn">Save and continue</button>
+            <div class="row">
+                <div class="form-group">
+                    <label for="gender">Gender</label>
+                    <select id="gender" required>
+                        <option value="">Select...</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="prefer_not_to_say">Prefer not to say</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="occupation">Occupation</label>
+                    <input type="text" id="occupation" placeholder="e.g. Teacher">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Address</label>
+                <textarea id="address" placeholder="Street, city, postal code"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="allergies">Allergies</label>
+                <textarea id="allergies" placeholder="List any known allergies, or 'None'"></textarea>
+            </div>
+
+            <button type="submit" id="saveBtn">Save and continue</button>
+        </form>
 
         <a class="logout-link" id="logoutLink">Sign out</a>
 
@@ -97,8 +150,14 @@
     <script src="app.js"></script>
     <script>
     const appRoot = document.getElementById('appRoot');
+    const form = document.getElementById('onboardingForm');
     const fullNameInput = document.getElementById('fullName');
     const phoneInput = document.getElementById('phone');
+    const altContactInput = document.getElementById('alternateContact');
+    const genderInput = document.getElementById('gender');
+    const occupationInput = document.getElementById('occupation');
+    const addressInput = document.getElementById('address');
+    const allergiesInput = document.getElementById('allergies');
     const saveBtn = document.getElementById('saveBtn');
     const messageDiv = document.getElementById('message');
 
@@ -108,8 +167,8 @@
     }
 
     async function init() {
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        if (!user) { window.location.href = 'index.html'; return; }
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) { window.location.href = 'index.html'; return; }
 
         const row = await getCurrentUserRow();
         if (row && !needsOnboarding(row)) {
@@ -117,17 +176,39 @@
             return;
         }
 
-        if (row?.full_name) fullNameInput.value = row.full_name;
-        if (row?.phone) phoneInput.value = row.phone;
+        if (row) {
+            if (row.full_name) fullNameInput.value = row.full_name;
+            if (row.phone) phoneInput.value = row.phone;
+            if (row.alternate_contact) altContactInput.value = row.alternate_contact;
+            if (row.gender) genderInput.value = row.gender;
+            if (row.occupation) occupationInput.value = row.occupation;
+            if (row.address) addressInput.value = row.address;
+            if (row.allergies) allergiesInput.value = row.allergies;
+        }
 
         appRoot.style.display = 'block';
     }
 
-    async function save() {
+    async function save(e) {
+        e?.preventDefault();
+
         const full_name = fullNameInput.value.trim();
         const phone = phoneInput.value.trim();
+        const alternate_contact = altContactInput.value.trim() || null;
+        const gender = genderInput.value || null;
+        const occupation = occupationInput.value.trim() || null;
+        const address = addressInput.value.trim() || null;
+        const allergies = allergiesInput.value.trim() || null;
 
-        if (!full_name || !phone) return showError('Please fill in both fields');
+        if (!full_name || !phone || !gender) {
+            return showError('Please fill in the required fields');
+        }
+
+        const phonePattern = /^\+?[0-9]{10,15}$/;
+        if (!phonePattern.test(phone)) return showError('Enter a valid phone number (10–15 digits, optional +)');
+        if (alternate_contact && !phonePattern.test(alternate_contact)) {
+            return showError('Alternate contact must be a valid phone number');
+        }
 
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving...';
@@ -135,7 +216,17 @@
         const { data: { user } } = await supabaseClient.auth.getUser();
         const { error } = await supabaseClient
             .from('users')
-            .upsert({ id: user.id, email: user.email, full_name, phone }, { onConflict: 'id' });
+            .upsert({
+                id: user.id,
+                email: user.email,
+                full_name,
+                phone,
+                alternate_contact,
+                gender,
+                occupation,
+                address,
+                allergies
+            }, { onConflict: 'id' });
 
         if (error) {
             showError(error.message);
@@ -147,10 +238,8 @@
         await routeUser();
     }
 
-    saveBtn.addEventListener('click', save);
+    form.addEventListener('submit', save);
     document.getElementById('logoutLink').addEventListener('click', logout);
-    fullNameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') phoneInput.focus(); });
-    phoneInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') save(); });
 
     init();
     </script>

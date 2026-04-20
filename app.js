@@ -22,7 +22,7 @@ async function getCurrentUserRow() {
 
   const { data } = await supabaseClient
     .from("users")
-    .select("id, email, full_name, phone, role")
+    .select("id, email, full_name, phone, role, alternate_contact, gender, occupation, address, allergies")
     .eq("id", user.id)
     .maybeSingle();
 
