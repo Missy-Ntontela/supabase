@@ -9,11 +9,21 @@ function pageForRole(role) {
   return "patient.html";
 }
 
+const REQUIRED_ONBOARDING_FIELDS = [
+  "full_name",
+  "phone",
+  "gender",
+  "occupation",
+  "address",
+  "allergies"
+];
+
 function needsOnboarding(user) {
   if (!user) return true;
-  const hasName = user.full_name && user.full_name.trim().length > 0;
-  const hasPhone = user.phone && user.phone.trim().length > 0;
-  return !hasName || !hasPhone;
+  return REQUIRED_ONBOARDING_FIELDS.some((field) => {
+    const value = user[field];
+    return value === null || value === undefined || String(value).trim() === "";
+  });
 }
 
 async function getCurrentUserRow() {

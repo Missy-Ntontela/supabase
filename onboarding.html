@@ -77,6 +77,7 @@
             cursor: pointer;
         }
         .hint { color: #888; font-size: 12px; margin-top: 4px; }
+        .req { color: #e53e3e; margin-left: 2px; }
     </style>
 </head>
 <body>
@@ -86,13 +87,13 @@
 
         <form id="onboardingForm" novalidate>
             <div class="form-group">
-                <label for="fullName">Full name</label>
+                <label for="fullName">Full name<span class="req">*</span></label>
                 <input type="text" id="fullName" placeholder="Jane Doe" required>
             </div>
 
             <div class="row">
                 <div class="form-group">
-                    <label for="phone">Phone</label>
+                    <label for="phone">Phone<span class="req">*</span></label>
                     <input
                         type="tel"
                         id="phone"
@@ -114,7 +115,7 @@
 
             <div class="row">
                 <div class="form-group">
-                    <label for="gender">Gender</label>
+                    <label for="gender">Gender<span class="req">*</span></label>
                     <select id="gender" required>
                         <option value="">Select...</option>
                         <option value="male">Male</option>
@@ -124,7 +125,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="occupation">Occupation</label>
+                    <label for="occupation">Occupation<span class="req">*</span></label>
                     <select id="occupation">
                         <option value="">Select...</option>
                         <option value="employed">Employed</option>
@@ -140,12 +141,12 @@
             </div>
 
             <div class="form-group">
-                <label for="address">Address</label>
+                <label for="address">Address<span class="req">*</span></label>
                 <textarea id="address" placeholder="Street, city, postal code"></textarea>
             </div>
 
             <div class="form-group">
-                <label for="allergies">Allergies</label>
+                <label for="allergies">Allergies<span class="req">*</span></label>
                 <textarea id="allergies" placeholder="List any known allergies, or 'None'"></textarea>
             </div>
 
@@ -205,13 +206,13 @@
         const full_name = fullNameInput.value.trim();
         const phone = phoneInput.value.trim();
         const alternate_contact = altContactInput.value.trim() || null;
-        const gender = genderInput.value || null;
-        const occupation = occupationInput.value.trim() || null;
-        const address = addressInput.value.trim() || null;
-        const allergies = allergiesInput.value.trim() || null;
+        const gender = genderInput.value;
+        const occupation = occupationInput.value;
+        const address = addressInput.value.trim();
+        const allergies = allergiesInput.value.trim();
 
-        if (!full_name || !phone || !gender) {
-            return showError('Please fill in the required fields');
+        if (!full_name || !phone || !gender || !occupation || !address || !allergies) {
+            return showError('Please fill in all required fields');
         }
 
         const phonePattern = /^\+?[0-9]{10,15}$/;
