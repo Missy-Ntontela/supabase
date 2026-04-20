@@ -177,14 +177,21 @@
         messageDiv.className = 'message error';
     }
 
+    const isEditMode = new URLSearchParams(window.location.search).has('edit');
+
     async function init() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session) { window.location.href = 'index.html'; return; }
 
         const row = await getCurrentUserRow();
-        if (row && !needsOnboarding(row)) {
+        if (row && !needsOnboarding(row) && !isEditMode) {
             window.location.href = pageForRole(row.role);
             return;
+        }
+
+        if (isEditMode) {
+            document.querySelector('h1').textContent = 'Edit your profile';
+            document.querySelector('.subtitle').textContent = 'Update your details below.';
         }
 
         if (row) {
